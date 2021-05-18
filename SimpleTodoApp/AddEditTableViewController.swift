@@ -8,7 +8,13 @@
 import UIKit
 
 class AddEditTableViewController: UITableViewController {
+    enum TodoType {
+        case add
+        case update
+    }
+    
     var todo: Todo?
+    private(set) var todoType: TodoType = .add
     weak var dataPassingDelegate: UpdateTodoList?
     private var cellConfig: [[AddEditCellSetting]] = []
     
@@ -16,9 +22,11 @@ class AddEditTableViewController: UITableViewController {
         if let todo = self.todo {
             cellConfig.append([AddEditCellSetting(value: todo.title, type: .title)])
             cellConfig.append([AddEditCellSetting(value: "", intValue: todo.priority.rawValue, type: .priority)])
+            self.todoType = .update
         } else {
             cellConfig.append([AddEditCellSetting(value: "", type: .title)])
             cellConfig.append([AddEditCellSetting(value: "", intValue: nil, type: .priority)])
+            self.todoType = .add
         }
         
         let identifier = NSStringFromClass(AddEditTableViewCell.self)
@@ -42,10 +50,14 @@ class AddEditTableViewController: UITableViewController {
                 }
             }
             var newTodo = Todo(title: title, priority: todoPriority)
-            if var pos = self.todo?.indexPath {
+            if let pos = self.todo?.indexPath {
                 newTodo.indexPath = pos
             }
-            self.dataPassingDelegate?.onListUpdate(todo: newTodo)
+            if self.todoType == .add {
+                self.dataPassingDelegate?.addTodo(item: newTodo)
+            } else {
+                self.dataPassingDelegate?.updateTodo(item: newTodo)
+            }
             self.navigationController?.popViewController(animated: true)
         }
     }
@@ -73,5 +85,6 @@ class AddEditTableViewController: UITableViewController {
 }
 
 protocol UpdateTodoList: AnyObject {
-    func onListUpdate(todo: Todo)
+    func addTodo(item: Todo)
+    func updateTodo(item: Todo)
 }

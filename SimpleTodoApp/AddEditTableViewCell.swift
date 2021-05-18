@@ -30,7 +30,7 @@ class AddEditTableViewCell: BaseTableViewCell<AddEditCellSetting> {
             case .priority:
                 self.prioritySegment = UISegmentedControl(items: ["High", "Medium", "Low"])
                 self.prioritySegment?.translatesAutoresizingMaskIntoConstraints = false
-                self.prioritySegment?.selectedSegmentIndex = 1
+                self.prioritySegment?.selectedSegmentIndex = settingModel.intValue ?? 1
                 self.contentView.addSubview(self.prioritySegment!)
             }
             

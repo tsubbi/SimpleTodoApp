@@ -68,16 +68,14 @@
 		A19F49C0264CC3A500A25384 /* SimpleTodoApp */ = {
 			isa = PBXGroup;
 			children = (
-				A19F49C1264CC3A500A25384 /* AppDelegate.swift */,
-				A19F49C3264CC3A500A25384 /* SceneDelegate.swift */,
+				A19F49EA2655258800A25384 /* Support Files */,
 				A19F49CA264CC3A800A25384 /* Assets.xcassets */,
 				A19F49E22652C6D400A25384 /* TodoListTableViewController.swift */,
-				A19F49CC264CC3A800A25384 /* LaunchScreen.storyboard */,
-				A19F49CF264CC3A800A25384 /* Info.plist */,
 				A19F49DE265272F900A25384 /* Todo.swift */,
 				A19F49E02652818200A25384 /* ListTableViewCell.swift */,
 				A19F49E62653ED0300A25384 /* AddEditTableViewController.swift */,
 				A19F49E82653EED300A25384 /* AddEditTableViewCell.swift */,
+				A19F49CF264CC3A800A25384 /* Info.plist */,
 				A19F49DB264DA14200A25384 /* Utilities */,
 			);
 			path = SimpleTodoApp;
@@ -91,6 +89,16 @@
 				A19F49DC264DA24A00A25384 /* BaseTableViewController.swift */,
 			);
 			path = Utilities;
+			sourceTree = "<group>";
+		};
+		A19F49EA2655258800A25384 /* Support Files */ = {
+			isa = PBXGroup;
+			children = (
+				A19F49C1264CC3A500A25384 /* AppDelegate.swift */,
+				A19F49C3264CC3A500A25384 /* SceneDelegate.swift */,
+				A19F49CC264CC3A800A25384 /* LaunchScreen.storyboard */,
+			);
+			path = "Support Files";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
