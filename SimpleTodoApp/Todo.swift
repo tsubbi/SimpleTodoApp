@@ -80,16 +80,17 @@ struct TodoList {
 
 struct Todo {
     var title: String
+    var description: String
     var isDone: Bool = false
     var priority: PriorityType
     var indexPath: IndexPath? = nil
     
-    static let demoList = [Todo(title: "sleep", priority: .low),
-                           Todo(title: "cook", priority: .high),
-                           Todo(title: "do chore", priority: .medium),
-                           Todo(title: "chat with friend", priority: .medium),
-                           Todo(title: "take a walk", priority: .low),
-                           Todo(title: "watch animation", priority: .medium)]
+    static let demoList = [Todo(title: "sleep", description: "Praesent sed dictum nisl. Vivamus eu leo elit. Nullam felis metus, tincidunt ut mauris at, pulvinar faucibus neque.", priority: .low),
+                           Todo(title: "cook", description: "Suspendisse eget nibh sit amet mauris efficitur viverra.", priority: .high),
+                           Todo(title: "do chore", description: "Cras elementum vestibulum sollicitudin. Integer at arcu justo.", priority: .medium),
+                           Todo(title: "chat with friend", description: "Duis condimentum tortor quis iaculis ultrices. Morbi eu maximus nunc.", priority: .medium),
+                           Todo(title: "take a walk", description: "Integer non dui luctus, faucibus enim ac, congue felis.", priority: .low),
+                           Todo(title: "watch animation", description: "Aenean pharetra, eros a ornare fermentum, est risus convallis justo", priority: .medium)]
 }
 
 enum PriorityType: Int, CaseIterable {

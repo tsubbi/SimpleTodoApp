@@ -21,12 +21,13 @@ class AddEditTableViewCell: BaseTableViewCell<AddEditCellSetting> {
                 self.titleTextField?.clipsToBounds = true
                 self.contentView.addSubview(self.titleTextField!)
             case .description:
-                self.descriptionTextView = UITextView()
-                self.descriptionTextView?.translatesAutoresizingMaskIntoConstraints = false
-                self.descriptionTextView?.contentInsetAdjustmentBehavior = .automatic
-                self.descriptionTextView?.textAlignment = .justified
-                self.descriptionTextView?.text = settingModel.value
-                self.contentView.addSubview(self.descriptionTextView!)
+                self.descriptionLabel = UILabel()
+                self.descriptionLabel?.translatesAutoresizingMaskIntoConstraints = false
+//                self.descriptionLabel?.contentInsetAdjustmentBehavior = .automatic
+                self.descriptionLabel?.numberOfLines = 0
+                self.descriptionLabel?.textAlignment = .justified
+                self.descriptionLabel?.text = settingModel.value
+                self.contentView.addSubview(self.descriptionLabel!)
             case .priority:
                 self.prioritySegment = UISegmentedControl(items: ["High", "Medium", "Low"])
                 self.prioritySegment?.translatesAutoresizingMaskIntoConstraints = false
@@ -39,7 +40,8 @@ class AddEditTableViewCell: BaseTableViewCell<AddEditCellSetting> {
     }
     
     var titleTextField: UITextField?
-    var descriptionTextView: UITextView?
+//    var descriptionTextView: UITextView?
+    var descriptionLabel: UILabel?
     var prioritySegment: UISegmentedControl?
     
     override func layoutUI() {
@@ -47,7 +49,7 @@ class AddEditTableViewCell: BaseTableViewCell<AddEditCellSetting> {
             titleTF.fillSuperView(padding: UIEdgeInsets(top: 5, left: 20, bottom: 5, right: 20))
         }
         
-        if let descriptonTV = self.descriptionTextView {
+        if let descriptonTV = self.descriptionLabel {
             descriptonTV.fillSuperView(padding: UIEdgeInsets(top: 5, left: 20, bottom: 5, right: 20))
         }
         
