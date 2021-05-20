@@ -7,13 +7,17 @@
 
 import UIKit
 
-class TodoListTableViewController: BaseTableViewController<ListTableViewCell, Todo> {
+class TodoListTableViewController: UITableViewController {
+    
+    var demoList = TodoList.init(withDemo: true)
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.items = Todo.demoList
+        let identifier = NSStringFromClass(ListTableViewCell.self)
+        self.tableView.register(ListTableViewCell.self, forCellReuseIdentifier: identifier)
         self.tableView.allowsMultipleSelectionDuringEditing = true
         
-        let addButon = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addTodo))
+        let addButon = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addTodoItem))
         self.navigationItem.setRightBarButton(addButon, animated: true)
         
         self.navigationItem.leftBarButtonItem = editButtonItem
@@ -24,8 +28,9 @@ class TodoListTableViewController: BaseTableViewController<ListTableViewCell, To
         // this will cause a bug when the cell is selected, and swipe after, the cell will be deleted
         if self.tableView.isEditing,
            let selectedRows = self.tableView.indexPathsForSelectedRows {
-            selectedRows.forEach {
-                self.items[$0[0]].remove(at: $0[1])
+            selectedRows.reversed().forEach {
+                guard let priority = PriorityType(rawValue: $0[0]) else { return }
+                demoList.removeItem(priority: priority, at: $0[1])
             }
             self.tableView.reloadData()
         }
@@ -35,7 +40,7 @@ class TodoListTableViewController: BaseTableViewController<ListTableViewCell, To
         self.tableView.visibleCells.forEach({ $0.layoutIfNeeded() })
     }
     
-    @objc func addTodo() {
+    @objc func addTodoItem() {
         addEditTodo()
     }
     
@@ -52,6 +57,27 @@ class TodoListTableViewController: BaseTableViewController<ListTableViewCell, To
         self.navigationController?.pushViewController(addVC, animated: true)
     }
     
+    // MARK: - Table View Datasource
+    override func numberOfSections(in tableView: UITableView) -> Int {
+        return PriorityType.allCases.count
+    }
+    
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        guard let priority = PriorityType(rawValue: section) else { return 0 }
+        return self.demoList.getList(priority: priority).count
+    }
+    
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let identifier = NSStringFromClass(ListTableViewCell.self)
+        let cell = self.tableView.dequeueReusableCell(withIdentifier: identifier, for: indexPath) as! ListTableViewCell
+        if let priority = PriorityType(rawValue: indexPath.section) {
+            let item = self.demoList.getItem(priority: priority, pos: indexPath.row)
+            cell.settingModel = item
+        }
+
+        return cell
+    }
+    
     // MARK: - Table View Delegate
     // set section header title
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
@@ -65,20 +91,21 @@ class TodoListTableViewController: BaseTableViewController<ListTableViewCell, To
     
     // set priority of the item
     override func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
-        guard let newPriority = PriorityType(rawValue: destinationIndexPath.section) else { return }
-        var todoItem = self.items[sourceIndexPath.section][sourceIndexPath.row]
+        guard let newPriority = PriorityType(rawValue: destinationIndexPath.section),
+              let oldPriority = PriorityType(rawValue: sourceIndexPath.section) else { return }
+        var todoItem = self.demoList.getItem(priority: oldPriority, pos: sourceIndexPath.row)
         todoItem.priority = newPriority
-        self.items[sourceIndexPath.section].remove(at: sourceIndexPath.row)
-        self.items[destinationIndexPath.section].insert(todoItem, at: destinationIndexPath.row)
+        self.demoList.removeItem(priority: oldPriority, at: sourceIndexPath.row)
+        self.demoList.updateList(todoItem, at: destinationIndexPath.row)
     }
     
     // set leading swipe action
     override func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        let checkAction = UIContextualAction(style: .normal, title: self.items[indexPath.section][indexPath.row].isDone ? "UNCHECK" : "CHECK") { (_, _, success:(Bool) -> Void) in
-            self.items[indexPath.section][indexPath.row].isDone.toggle()
-            DispatchQueue.main.async { [weak self] in
-                self?.tableView.reloadData()
-            }
+        guard let priority = PriorityType(rawValue: indexPath.section) else { return nil }
+        let title = self.demoList.getItem(priority: priority, pos: indexPath.row).isDone ? "UNCHECK" : "CHECK"
+        let checkAction = UIContextualAction(style: .normal, title: title) { (_, _, success:(Bool) -> Void) in
+            self.demoList.toggleItem(priority: priority, pos: indexPath.row)
+            self.tableView.reloadData()
             success(true)
         }
         checkAction.backgroundColor = .orange
@@ -86,28 +113,37 @@ class TodoListTableViewController: BaseTableViewController<ListTableViewCell, To
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        self.addEditTodo(item: self.items[indexPath.section][indexPath.row], positon: indexPath)
+        if !self.isEditing {
+            guard let priority = PriorityType(rawValue: indexPath.section) else { return }
+            let todoItem = self.demoList.getItem(priority: priority, pos: indexPath.row)
+            self.addEditTodo(item: todoItem, positon: indexPath)
+        }
     }
 }
 
 extension TodoListTableViewController: UpdateTodoList {
-    func onListUpdate(todo: Todo) {
-        if let pos = todo.indexPath {
-            // remove the previous item
-            self.items[pos.section].remove(at: pos.row)
-            var updateItem = todo
-            // clear the index path
-            updateItem.indexPath = nil
-            // if the priority has changed, insert into new priority row, else update new item
-            if pos.section == todo.priority.rawValue {
-                self.items[pos.section].insert(updateItem, at: pos.row)
-            } else {
-                self.items[updateItem.priority.rawValue].append(updateItem)
-            }
+    func addTodo(item: Todo) {
+        self.demoList.addItem(item)
+        self.tableView.reloadData()
+    }
+    
+    func updateTodo(item: Todo) {
+        var newTodo = item
+        guard let indexPath = item.indexPath,
+              let oldPriority = PriorityType(rawValue: indexPath.section)
+        else { return }
+        // clear indexPath for safety purpose
+        newTodo.indexPath = nil
+        if indexPath.section == item.priority.rawValue {
+            // priority hasn't changed
+            self.demoList.removeItem(priority: oldPriority, at: indexPath.row)
+            self.demoList.updateList(item, at: indexPath.row)
         } else {
-            let index = todo.priority.rawValue
-            self.items[index].append(todo)
+            // priority has changed
+            self.demoList.removeItem(priority: oldPriority, at: indexPath.row)
+            self.demoList.addItem(newTodo)
         }
+        
         self.tableView.reloadData()
     }
 }
